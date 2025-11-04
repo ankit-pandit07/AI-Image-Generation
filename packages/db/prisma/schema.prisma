@@ -26,6 +26,7 @@ model Model {
   name             String
   type             ModelTypeEnum
   age              Int   
+  userId           String
   ethinicity       EthenecityEnum
   eyeColor         EyeColorEnum
   bald             Boolean
@@ -47,6 +48,8 @@ model OutputImages {
   imageUrl        String
   modelId         String
   userId          String
+  prompt          String
+  status          OutputImageStatusEnum
   model           Model    @relation(fields: [modelId], references: [id])
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -74,11 +77,11 @@ enum ModelTypeEnum {
 enum EthenecityEnum {
   White
   Black
-  Asian_American
-  East_Asian
-  South_East_Asian
-  South_Asian
-  Middle_Eastern
+  Asian_American      @map("Asian American")
+  East_Asian          @map("East Asian")
+  South_East_Asian    @map("South East Asian")
+  South_Asian         @map("South Asian")
+  Middle_Eastern      @map("Middle Eastern")
   Pacific
   Hispanic
 }
@@ -89,3 +92,5 @@ enum EyeColorEnum {
   Hazel
   Gray
 }
+
+
