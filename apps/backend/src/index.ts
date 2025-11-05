@@ -1,22 +1,106 @@
 import express = require("express");
-import {GenerateImage,TrainModel,GenerateImagesPack} from "common/types"
-const app=express();
-const port=3000;
+import {GenerateImage,TrainModel,GenerateImagesFromPack} from "common/types"
+import { prismaClient } from "db";
 
-app.post("/ai/training",(req,res)=>{
-    
+const port=3000;
+const USER_ID="12345"
+const app=express();
+app.use(express());
+
+app.post("/ai/training",async(req,res)=>{
+    const parsedBody=TrainModel.safeParse(req.body)
+
+    if(!parsedBody.success){
+        res.status(411).json({
+            message:"Incorrect Inputs"
+        })
+    return
+    }
+
+    const data=await prismaClient.model.create({
+        data:{
+            name:parsedBody.data.name,
+            type:parsedBody.data.type,
+            age:parsedBody.data.age,
+            ethinicity:parsedBody.data.ethinicity,
+            eyeColor:parsedBody.data.eyeColor,
+            bald:parsedBody.data.bald,
+            userId:USER_ID
+        }
+    })
+    res.json({
+        modelId:data.id
+    })
 })
-app.post("/ai/generate",(req,res)=>{
-    
+app.post("/ai/generate",async(req,res)=>{
+    const parsedBody=GenerateImage.safeParse(req.body)
+    if(!parsedBody.success){
+        res.status(411).json({
+           message:"Incorrect Inputs"
+        })
+        return
+    }
+
+    const data=await prismaClient.outputImages.create({
+        data:{
+            prompt:parsedBody.data.prompt,
+            userId:USER_ID,
+            modelId:parsedBody.data.modelId,
+            imageUrl:""
+        }
+    })
+    res.json({
+        imageUrl:data.id
+    })
 })
-app.post("/pack/generate",(req,res)=>{
-    
+app.post("/pack/generate",async(req,res)=>{
+    const parsedBody=GenerateImagesFromPack.safeParse(req.body)
+    if(!parsedBody.success){
+        res.status(411).json({
+            message:"Incorrect Inputs"
+        })
+        return
+    }
+
+    const prompts=await prismaClient.packPrompts.findMany({
+        where:{
+            packId:parsedBody.data.packId
+        }
+    })
+    const images=await prismaClient.outputImages.createManyAndReturn({
+        data:prompts.map((prompt)=>({
+            prompt:prompt.prompt,
+            userId:USER_ID,
+            modelId:parsedBody.data.modelId,
+            imageUrl:""
+        }))
+    })
+    res.json({
+        images:images.map((image)=>image.id)
+    })
 })
-app.get("/pack/bulk",(req,res)=>{
-    
+app.get("/pack/bulk",async(req,res)=>{
+    const packs=await prismaClient.packs.findMany({})
+    res.json({
+        packs
+    })
 })
-app.get("/image",(req,res)=>{
-    
+app.get("/image/bulk",async(req,res)=>{
+    const ids=req.query.images as string[]
+    const limit=req.query.limit as string ?? "20";
+    const offset=req.query.offset as string ??"0";
+
+    const imagesData=await prismaClient.outputImages.findMany({
+        where:{
+            id:{in:ids},
+            userId:USER_ID
+        },
+        skip:parseInt(offset),
+        take:parseInt(limit)
+    })
+    res.json({
+        images:imagesData
+    })
 })
 
 app.listen(port,()=>{
