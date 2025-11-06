@@ -2,8 +2,8 @@ import express from "express"
 import {GenerateImage,TrainModel,GenerateImagesFromPack} from "common/types"
 import { prismaClient } from "db";
 import dotenv from "dotenv"
-import {S3Client} from "bun"
-import { FalAIModel } from "./models/FalAIModel.js";
+import {S3Client } from "@aws-sdk/client-s3"
+import { FalAIModel } from "../models/FalAIModel.js";
 
 dotenv.config();
 const port=3000;
@@ -13,7 +13,21 @@ app.use(express());
 
 const falAiModel=new FalAIModel();
 
+app.get("/pre-signed-url",async(req,res)=>{ 
+    const key=`models/${Date.now()}_${Math.random()}.zip`
+    //@ts-ignore
+    const url=S3Client.presign(`models/${Date.now()}_${Math.random()}.zip`,{
+         accessKeyId:process.env.S3_ACCESS_KEY,
+          secretAccessKey:process.env.S3_SECRET_KEY,
+           bucket:process.env.BUCKET_NAME,
+            expiresIn:60*5
 
+     })
+      res.json({ 
+        url ,
+        key
+    }) 
+})
 
 app.post("/ai/training",async(req,res)=>{
     const parsedBody=TrainModel.safeParse(req.body)
@@ -67,7 +81,7 @@ app.post("/ai/generate",async(req,res)=>{
         return;
     }
 
-    const {request_id,response_url}=await falAiModel.generateImages(parsedBody.data.prompt, model.tensorPath);
+    const {request_id,response_url}=await falAiModel.generateImage(parsedBody.data.prompt, model.tensorPath);
 
     const data=await prismaClient.outputImages.create({
         data:{

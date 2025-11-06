@@ -1,12 +1,13 @@
-import { BaseModel } from "./BaseModel.js";
+import { BaseModel } from "./BaseModel.js"
 import { fal } from "@fal-ai/client";
 
 export class FalAIModel extends BaseModel{
     constructor(){
         super();
+    
     }
-
-    public async generateImages(prompt:string,tensorPath:string){
+    //@ts-ignore
+    public async generateImage(prompt:string,tensorPath:string){
         const {request_id,response_url}=await fal.queue.submit("fal-ai/flux-lora",{
             input:{
                 prompt:prompt,
@@ -17,7 +18,7 @@ export class FalAIModel extends BaseModel{
         })
         return {request_id,response_url}
     }
-
+//@ts-ignore
     public async trainModel(zipUrl:string,triggerWord:string){
         const {request_id,response_url}=await fal.queue.submit("fal-ai/flux-lora-fast-training",{
             input:{
@@ -28,4 +29,5 @@ export class FalAIModel extends BaseModel{
         });
         return {request_id,response_url}
     }
+
 }
