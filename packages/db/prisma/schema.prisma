@@ -11,61 +11,73 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}        
+}
 
 model User {
-  id                String   @id @default(uuid())
-  username          String
-  profilePicture    String?
-  creadtedAt        DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id             String   @id @default(uuid())
+  username       String
+  profilePicture String?
+  creadtedAt     DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+enum ModelTrainingStatusEnum {
+  Pending
+  Generated
+  Failed
 }
 
 model Model {
-  id               String           @id @default(uuid())
-  name             String
-  type             ModelTypeEnum
-  age              Int   
-  userId           String
-  ethinicity       EthenecityEnum
-  eyeColor         EyeColorEnum
-  bald             Boolean
-  trainingImages   TrainingImages[]
-  outputImages     OutputImages[]
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  id             String                  @id @default(uuid())
+  name           String
+  type           ModelTypeEnum
+  age            Int
+  userId         String
+  triggerWord    String?
+  tensorPath     String?
+  trainigStatus  ModelTrainingStatusEnum @default(Pending)
+  ethinicity     EthenecityEnum
+  eyeColor       EyeColorEnum
+  bald           Boolean
+  outputImages   OutputImages[]
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  falAiRequestId String?
+  zipUrl         String
+  @@index([falAiRequestId])
 }
 
-model TrainingImages {
-  id               String @id @default(uuid())
-  imageUrl         String
-  modelId          String
-  model            Model  @relation(fields: [modelId], references: [id])
+enum OutputImageStatusEnum {
+  Pending
+  Generated
+  Failed
 }
 
-model OutputImages {    
-  id              String   @id @default(uuid())
-  imageUrl        String
-  modelId         String
-  userId          String
-  prompt          String
-  status          OutputImageStatusEnum
-  model           Model    @relation(fields: [modelId], references: [id])
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+model OutputImages {
+  id             String                @id @default(uuid())
+  imageUrl       String                @default("")
+  modelId        String
+  userId         String
+  prompt         String
+  falAiRequestId String?
+  status         OutputImageStatusEnum @default(Pending)
+  model          Model                 @relation(fields: [modelId], references: [id])
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  @@index([falAiRequestId])
 }
 
 model Packs {
-  id         String        @id @default(uuid())
-  name       String
-  prompts    PackPrompts[]
+  id      String        @id @default(uuid())
+  name    String
+  prompts PackPrompts[]
 }
 
 model PackPrompts {
-  id        String @id @default(uuid())
-  prompt    String
-  packId    String
-  pack      Packs  @relation(fields: [packId], references: [id])
+  id     String @id @default(uuid())
+  prompt String
+  packId String
+  pack   Packs  @relation(fields: [packId], references: [id])
 }
 
 enum ModelTypeEnum {
@@ -77,11 +89,11 @@ enum ModelTypeEnum {
 enum EthenecityEnum {
   White
   Black
-  Asian_American      @map("Asian American")
-  East_Asian          @map("East Asian")
-  South_East_Asian    @map("South East Asian")
-  South_Asian         @map("South Asian")
-  Middle_Eastern      @map("Middle Eastern")
+  Asian_American   @map("Asian American")
+  East_Asian       @map("East Asian")
+  South_East_Asian @map("South East Asian")
+  South_Asian      @map("South Asian")
+  Middle_Eastern   @map("Middle Eastern")
   Pacific
   Hispanic
 }
@@ -92,5 +104,3 @@ enum EyeColorEnum {
   Hazel
   Gray
 }
-
-

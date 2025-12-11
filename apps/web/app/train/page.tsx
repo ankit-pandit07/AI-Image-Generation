@@ -12,14 +12,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import UploadModal from "@/components/ui/upload"
-
+import {UploadModal} from "@/components/ui/upload"
 
 
 export default function Train(){
 return (
-<div className="flex flex-col items-center justify-center h-screen">
-    <Card className="w-[350px] px-4">
+<div className="flex flex-col items-center justify-center min-h-screen py-12">
+    <Card className="w-[350px] px-4 ">
     <CardHeader>
         <CardTitle>Create project</CardTitle>
         <CardDescription>Deploy your new project in one-click.</CardDescription>
@@ -83,13 +82,14 @@ return (
                 <Switch/>
             </div>
             <UploadModal />
-        </div>
+        </div> 
     </CardContent>
     <CardFooter className="flex justify-between">
         <Button>Cancel</Button>
         <Button >Create Model</Button>
     </CardFooter>
     </Card>
+   
 </div>
 )
 }

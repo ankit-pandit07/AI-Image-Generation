@@ -1,23 +1,45 @@
-
+"use client"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-
-export default function UploadModal() {
+import axios from "axios"
+import { BACKEND_URL } from "@/app/config"
+import JSZip from "jszip"
+export function UploadModal() {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Upload Images</CardTitle>
-        <CardDescription>Drag and drop your images or click the button below to select files.</CardDescription>
-      </CardHeader>
       <CardContent className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg p-10 space-y-6">
         <CloudUploadIcon className="w-16 h-16 text-zinc-500 dark:text-zinc-400" />
-        <Button variant="outline">Select Files</Button>
+        <Button variant="outline" className="w-full" onClick={()=>{
+          const input=document.createElement("input");
+          input.type="file";
+          input.accept="image/*";
+          input.multiple=true;
+          input.onchange=async()=>{
+            const zip=new JSZip();
+            const res=await axios.get(`${BACKEND_URL}/pre-signed-url`)
+            //@ts-ignore
+            const url=res.data.url;
+
+            if(input.files){
+              for(const file of input.files){
+                const content=await file.arrayBuffer();
+                zip.file(file.name,content)
+              }
+              const content=await zip.generateAsync({type:"blob"});
+              const formData=new FormData();
+              formData.append("file",content);
+              const res=await axios.put(url,formData)
+              console.log(res.data)
+            }
+          }
+          input.click();
+        }}>Select Files</Button>
       </CardContent>
     </Card>
   )
 }
 
-export function CloudUploadIcon(props:React.SVGProps<SVGAElement>) {
+function CloudUploadIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
